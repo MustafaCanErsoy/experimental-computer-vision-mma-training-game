@@ -1,0 +1,121 @@
+name: Windows checks and package
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        description: Build and validate a portable Windows package after tests
+        required: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: utf-8
+      PIP_DISABLE_PIP_VERSION_CHECK: '1'
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          architecture: x64
+          cache: pip
+          cache-dependency-path: |
+            requirements.lock.txt
+            requirements-build.lock.txt
+
+      - name: Validate release tag before building
+        if: inputs.package
+        run: python scripts/ci_release.py check-ref
+
+      - name: Install pinned dependencies
+        run: python -m pip install -r requirements.lock.txt -r requirements-build.lock.txt
+
+      - name: Check dependency consistency
+        run: python -m pip check
+
+      - name: Install verified pose model
+        run: python scripts/setup.py
+
+      - name: Install verified Godot runtime
+        run: python scripts/setup_godot.py
+
+      - name: Prepare local test output
+        run: New-Item -ItemType Directory -Force build/ci | Out-Null
+
+      - name: Python regression tests (no physical camera)
+        run: python -m unittest discover -s tests -v
+
+      - name: Godot game and protocol tests
+        run: |
+          $engine = '.tools/godot/Godot_v4.7.2-stable_win64_console.exe'
+          foreach ($script in @('test_encounter.gd', 'test_event_bridge.gd', 'test_guard_resume.gd', 'test_progress.gd', 'test_tower.gd')) {
+            & $engine --headless --path godot --script "res://$script"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      - name: Live Python to Godot bridge (synthetic events)
+        run: python scripts/test_bridge_live.py
+
+      - name: Camera adapter integration (generated observations only)
+        run: python scripts/test_camera_ready_live.py
+
+      - name: Recognition report in headless Edge (generated pixels only)
+        run: python scripts/test_report_ui.py
+
+      - name: Build portable Windows ZIP
+        if: inputs.package
+        run: python scripts/build_windows.py
+
+      - name: Validate extracted Windows ZIP without a physical camera
+        if: inputs.package
+        run: python scripts/test_windows_bundle.py
+
+      - name: Stage only the verified ZIP and checksum
+        if: inputs.package
+        run: python scripts/ci_release.py stage
+
+      - name: Upload validated Windows package
+        if: inputs.package
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-package
+          path: build/ci-release/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+
+      - name: Show packaging log if a build failed
+        if: failure() && inputs.package
+        run: |
+          Get-ChildItem build -Filter packaging-build.log -Recurse -ErrorAction SilentlyContinue |
+            ForEach-Object { Get-Content -LiteralPath $_.FullName -Tail 100 }
+
+      - name: Write validation summary
+        if: always()
+        env:
+          JOB_RESULT: ${{ job.status }}
+          PACKAGE_REQUESTED: ${{ inputs.package }}
+        run: |
+          @"
+          Windows checks: $env:JOB_RESULT
+
+          Portable package requested: $env:PACKAGE_REQUESTED
+
+          Camera tests use generated observations. No physical webcam is opened.
+          Software checks do not establish real human movement accuracy.
+          "@ | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8

@@ -1,5 +1,7 @@
 # Experimental Computer Vision MMA Training Game
 
+[![CI](https://github.com/MustafaCanErsoy/experimental-computer-vision-mma-training-game/actions/workflows/ci.yml/badge.svg)](https://github.com/MustafaCanErsoy/experimental-computer-vision-mma-training-game/actions/workflows/ci.yml)
+
 **ShadowMMA** is an experimental Windows shadowboxing game that connects webcam pose tracking to a small 3D tower encounter. It explores teaching simple movement prompts through play: **left punch, right punch, and uppercut**.
 
 > **Prototype status:** Real movement recognition is still unreliable. Movements can be missed or assigned to the wrong class, preventing progress in camera mode. Low effective processing FPS is a suspected contributor; the root cause has not been isolated. This is a computer vision experiment, not a validated MMA coaching system.
@@ -110,6 +112,12 @@ Run the existing local checks after setup:
 ```
 
 The second command uses synthetic camera observations with the real adapter and game processes; it does not open a physical webcam. See [validation and measurement](agents/TEST_PLANI.md) for what these checks establish.
+
+## GitHub automation
+
+**CI** runs Windows tests on pushes to `main` and pull requests. **CD** runs the same checks, builds the portable Windows ZIP, and validates the extracted application. A manual CD run provides a downloadable artifact; pushing a version tag matching the application version publishes it as an experimental GitHub prerelease with a SHA256 checksum.
+
+The YAML workflows run on GitHub-hosted machines. See [CI/CD usage and release instructions](agents/CI_CD.md). No real camera or user session data is used in these checks.
 
 ## Third-party notices
 

@@ -107,8 +107,10 @@ def main():
     (package / "assets").mkdir()
     shutil.copy2(MODEL, package / "assets" / MODEL.name)
     (package / "agents").mkdir()
-    shutil.copy2(ROOT / "agents/PAKET.md", package / "agents/PAKET.md")
-    shutil.copy2(ROOT / "agents/RAPORLAMA.md", package / "agents/RAPORLAMA.md")
+    for name in ("PAKET.md", "RAPORLAMA.md", "TEST_PLANI.md"):
+        shutil.copy2(ROOT / "agents" / name, package / "agents" / name)
+    if (ROOT / "agents/CI_CD.md").is_file():
+        shutil.copy2(ROOT / "agents/CI_CD.md", package / "agents/CI_CD.md")
     (package / "Raporlar.cmd").write_text('@echo off\n"%~dp0ShadowMMA.exe" --reports\n', encoding="ascii")
     inventory = copy_licenses(package, distributions)
     manifest = {"schema": 1, "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),

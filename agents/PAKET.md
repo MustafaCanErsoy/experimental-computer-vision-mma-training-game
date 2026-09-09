@@ -31,6 +31,8 @@ After source installation, run:
 
 The build checks pinned versions, hashes, and third-party notices. It produces a new `dist/windows-<timestamp>/` directory containing the application folder, ZIP, and checksum. `build/latest-package.json` identifies the latest output. Each bundle includes a manifest with file hashes, dependency versions, and source Git state.
 
+The public repository also provides a **CD** workflow in GitHub Actions. A manual run builds and tests this package on GitHub and retains the download for seven days. A matching version tag publishes an experimental Release. See [CI/CD instructions](CI_CD.md) in the source repository.
+
 Extract the entire ZIP before opening `ShadowMMA.exe`. Keep its `_internal`, `godot`, `runtime`, `assets`, and `agents` directories together. Python and Godot do not need separate installation for that bundle. The EXE defaults to automatic camera gameplay; `ShadowMMA.exe --launcher` exposes the other modes. This is a local unsigned prototype bundle.
 
 ## Troubleshooting
