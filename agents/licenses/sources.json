@@ -1,0 +1,17 @@
+[
+  {
+    "file": "flatbuffers-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/google/flatbuffers/v25.12.19/LICENSE",
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  },
+  {
+    "file": "Tcl-license.terms",
+    "url": "https://raw.githubusercontent.com/tcltk/tcl/core-8-6-15/license.terms",
+    "sha256": "c0a69a2bfd757361ec7e6143973b103c90409316b49e9c88db26ad6388e79f16"
+  },
+  {
+    "file": "Model-Apache-2.0.txt",
+    "url": "https://raw.githubusercontent.com/google-ai-edge/mediapipe/v0.10.35/LICENSE",
+    "sha256": "8707eef0533987efc5b155d64761eeb6e20793f50b9bd1a68dad1cf4719d0ed8"
+  }
+]
